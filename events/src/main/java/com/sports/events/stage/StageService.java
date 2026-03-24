@@ -1,4 +1,4 @@
 package com.sports.events.stage;
 
-public class ResultService {
+public class StageService {
 }
