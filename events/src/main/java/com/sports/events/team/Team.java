@@ -12,25 +12,25 @@ import lombok.NoArgsConstructor;
 @Table(name = "team")
 public class Team {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private Integer id;
 
-    @Column(name = "name")
-    private String name;
+        @Column(name = "name")
+        private String name;
 
-    @Column(name = "official_name")
-    private String officialName;
+        @Column(name = "official_name")
+        private String officialName;
 
-    @Column(name = "slug")
-    private String slug;
+        @Column(name = "slug")
+        private String slug;
 
-    @Column(name = "abbreviation")
-    private String abbreviation;
+        @Column(name = "abbreviation")
+        private String abbreviation;
 
-    @Column(name = "team_country_code")
-    private String teamCountryCode;
+        @Column(name = "team_country_code")
+        private String teamCountryCode;
 
-    @Column(name = "stage_position")
-    private Integer stagePosition;
+        @Column(name = "stage_position")
+        private Integer stagePosition;
 }

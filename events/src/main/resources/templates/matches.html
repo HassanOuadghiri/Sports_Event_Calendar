@@ -1,11 +1,11 @@
-<table xmlns:th="http://www.w3.org/1999/xhtml">
-    <!DOCTYPE html>
-    <html xmlns:th="http://www.thymeleaf.org" lang="en">
-    <head>
-        <title>Matches</title>
-    </head>
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matches</title>
+
     <style>
-        /* Global */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f4f6f8;
@@ -13,24 +13,85 @@
             color: #333;
         }
 
-        /* Table Container */
         h2 {
             text-align: center;
             margin-bottom: 20px;
             color: #222;
         }
 
-        /* Table */
+        .filter-form {
+            max-width: 1000px;
+            margin: 0 auto 20px auto;
+            background-color: #fff;
+            padding: 16px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 220px;
+        }
+
+        .filter-group label {
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            padding: 10px 12px;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            font-size: 14px;
+            background-color: #fff;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-search {
+            background-color: #4a90e2;
+            color: white;
+        }
+
+        .btn-reset {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .table-wrapper {
+            max-width: 100%;
+            overflow-x: auto;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
             background-color: #fff;
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
         }
 
-        /* Header */
         th {
             background-color: #4a90e2;
             color: white;
@@ -39,42 +100,59 @@
             font-weight: 600;
         }
 
-        /* Cells */
         td {
             padding: 12px 15px;
             border-bottom: 1px solid #e0e0e0;
         }
 
-        /* Row hover effect */
-        tr:hover {
+        tbody tr:hover {
             background-color: #f1f8ff;
             transition: background-color 0.3s;
         }
 
-        /* Alternate row colors */
-        tr:nth-child(even) {
+        tbody tr:nth-child(even) {
             background-color: #f9fafb;
         }
 
-        /* Responsive */
+        .empty-message {
+            text-align: center;
+            margin-top: 20px;
+            font-weight: 600;
+            color: #666;
+        }
+
         @media (max-width: 768px) {
-            table, thead, tbody, th, td, tr {
+            .filter-form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            table,
+            thead,
+            tbody,
+            th,
+            td,
+            tr {
                 display: block;
             }
 
-            th {
-                position: sticky;
-                top: 0;
+            thead {
+                display: none;
             }
 
             tr {
                 margin-bottom: 15px;
+                background: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+                overflow: hidden;
             }
 
             td {
                 text-align: right;
                 padding-left: 50%;
                 position: relative;
+                border-bottom: 1px solid #e0e0e0;
             }
 
             td::before {
@@ -87,13 +165,45 @@
             }
         }
     </style>
-    <body>
+</head>
+<body>
 
-    <h2>Matches</h2>
+<h2>Matches</h2>
 
-    <table border="1">
+<form th:action="@{/matches}" method="get" class="filter-form">
+    <div class="filter-group">
+        <label for="date">Date</label>
+        <input
+                type="date"
+                id="date"
+                name="date"
+                th:value="${selectedDate != null ? #temporals.format(selectedDate, 'yyyy-MM-dd') : ''}">
+    </div>
+
+    <div class="filter-group">
+        <label for="sportTypeId">Sport Type</label>
+        <select id="sportTypeId" name="sportTypeId">
+            <option value="">All Sports</option>
+            <option th:each="sportType : ${sportTypes}"
+                    th:value="${sportType.id}"
+                    th:text="${sportType.name}"
+                    th:selected="${selectedSportTypeId != null and sportType.id == selectedSportTypeId}">
+            </option>
+        </select>
+    </div>
+
+    <div class="filter-actions">
+        <button type="submit" class="btn btn-search">Search</button>
+        <a th:href="@{/matches}" class="btn btn-reset">Reset</a>
+    </div>
+</form>
+
+<div class="table-wrapper" th:if="${matches != null and !#lists.isEmpty(matches)}">
+    <table>
+        <thead>
         <tr>
             <th>Date</th>
+            <th>Sport Type</th>
             <th>Stage</th>
             <th>Home Team</th>
             <th>Away Team</th>
@@ -101,24 +211,44 @@
             <th>Winner</th>
             <th>Stadium</th>
         </tr>
+        </thead>
 
+        <tbody>
         <tr th:each="match : ${matches}">
-            <td th:text="${#temporals.format(match.dateVenue, 'dd MMM yyyy HH:mm')}"></td>
-            <td th:text="${match.stage.name}"></td>
+            <td data-label="Date"
+                th:text="${#temporals.format(match.dateVenue, 'dd/MM/yyyy HH:mm')}"></td>
 
-            <td th:text="${match.homeTeam.name}"></td>
-            <td th:text="${match.awayTeam.name}"></td>
+            <td data-label="Sport Type"
+                th:text="${match.sportType != null ? match.sportType.name : 'N/A'}"></td>
 
-            <td>
-                <span th:text="${match.result.homeGoals}"></span> -
-                <span th:text="${match.result.awayGoals}"></span>
+            <td data-label="Stage"
+                th:text="${match.stage != null ? match.stage.name : 'N/A'}"></td>
+
+            <td data-label="Home Team"
+                th:text="${match.homeTeam != null ? match.homeTeam.name : 'N/A'}"></td>
+
+            <td data-label="Away Team"
+                th:text="${match.awayTeam != null ? match.awayTeam.name : 'N/A'}"></td>
+
+            <td data-label="Score">
+                <span th:text="${match.result != null ? match.result.homeGoals : 0}"></span>
+                -
+                <span th:text="${match.result != null ? match.result.awayGoals : 0}"></span>
             </td>
 
-            <td th:text="${match.result.winner}"></td>
-            <td th:text="${match.stadium}"></td>
+            <td data-label="Winner"
+                th:text="${match.result != null ? match.result.winner : 'N/A'}"></td>
+
+            <td data-label="Stadium"
+                th:text="${match.stadium}"></td>
         </tr>
-
+        </tbody>
     </table>
+</div>
 
-    </body>
-    </html>
+<div class="empty-message" th:if="${matches == null or #lists.isEmpty(matches)}">
+    No matches found for the selected filters.
+</div>
+
+</body>
+</html>

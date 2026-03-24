@@ -12,13 +12,13 @@ import java.util.List;
 public class ResultController {
     private final ResultService resultService;
 
-    public ResultController(ResultService resultService) {
-        this.resultService = resultService;
-    }
+        public ResultController(ResultService resultService) {
+            this.resultService = resultService;
+        }
 
-    @GetMapping
-    public List<Result> getAllResults() {
-        return resultService.getAllResults();
+        @GetMapping
+        public List<Result> getAllResults() {
+            return resultService.getAllResults();
+        }
     }
-}
 

@@ -1,6 +1,7 @@
 package com.sports.events.match;
 
 import com.sports.events.result.Result;
+import com.sports.events.sport.SportType;
 import com.sports.events.stage.Stage;
 import com.sports.events.team.Team;
 import jakarta.persistence.*;
@@ -59,5 +60,9 @@ public class Match {
 
     @Column(name = "stadium")
     private String stadium;
+
+    @ManyToOne
+    @JoinColumn(name = "sport_type_id")
+    private SportType sportType;
 
 }

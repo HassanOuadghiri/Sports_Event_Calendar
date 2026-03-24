@@ -2,6 +2,8 @@ package com.sports.events.match;
 
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -14,10 +16,25 @@ public class MatchService {
         this.repo = repo;
     }
 
-    public List<Match> getAllMatches(){
+    public List<Match> searchMatches(LocalDate date, Long sportTypeId) {
+        boolean hasDate = date != null;
+        boolean hasSportType = sportTypeId != null;
+
+        if (hasDate) {
+            LocalDateTime start = date.atStartOfDay();
+            LocalDateTime end = date.plusDays(1).atStartOfDay();
+
+            if (hasSportType) {
+                return repo.findByDateVenueBetweenAndSportTypeId(start, end, sportTypeId);
+            }
+
+            return repo.findByDateVenueBetween(start, end);
+        }
+
+        if (hasSportType) {
+            return repo.findBySportTypeId(sportTypeId);
+        }
+
         return repo.findAll();
-    }
-    public Match getMatchById(int id){
-        return repo.findById(id).orElse(null);
     }
 }
