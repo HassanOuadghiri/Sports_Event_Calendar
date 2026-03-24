@@ -40,5 +40,11 @@ public class MatchController {
 
         return "matches";
     }
+    @GetMapping("/")
+    public String index() {
+        return "index";
+    }
 
-}
+    }
+
+
