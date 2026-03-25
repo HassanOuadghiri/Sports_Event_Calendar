@@ -105,7 +105,7 @@ A simplified overview of the domain includes:
 
 Make sure you have installed:
 
-- Java 17+ (or the version required by your project)
+- Java 21
 - Maven or Gradle, depending on your build setup
 
 ### Run the application

@@ -1,0 +1,2 @@
+The database structure was created with the help of **AI** by providing the system with the **ERD** (Entity Relationship Diagram) of the project.
+The `DataInitializer` class was also created with the help of **AI** to automate the insertion of sample data whenever the application starts.
