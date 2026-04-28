@@ -5,12 +5,12 @@ import com.sports.events.sport.SportType;
 import com.sports.events.stage.Stage;
 import com.sports.events.team.Team;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
@@ -24,9 +24,11 @@ public class Match {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @NotBlank(message = "Status is required")
     @Column(name = "status")
     private String status;
 
+    @NotNull(message = "Date and venue time is required")
     @Column(name = "date_venue")
     private LocalDateTime dateVenue;
 
@@ -39,13 +41,16 @@ public class Match {
     @Column(name = "origin_competition_name")
     private String originCompetitionName;
 
+    @NotNull(message = "Season is required")
     @Column(name = "season")
     private Integer season;
 
+    @NotNull(message = "Home team is required")
     @ManyToOne
     @JoinColumn(name = "home_team_id")
     private Team homeTeam;
 
+    @NotNull(message = "Away team is required")
     @ManyToOne
     @JoinColumn(name = "away_team_id")
     private Team awayTeam;

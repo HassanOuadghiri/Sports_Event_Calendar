@@ -1,122 +1,257 @@
-# Sports Events App
+# 🏟️ Sports Event Calendar
 
-A Spring Boot web application for managing and viewing sports events, matches, teams, stages, and results. The application uses an in-memory H2 database and Thymeleaf for server-side rendered views.
+A Spring Boot web application for managing and viewing sports events, matches, teams, stages, and results. Built with Thymeleaf server-side rendering, Spring Data JPA, and an H2 in-memory database.
 
-## Tech Overview
+---
 
-This project is built with the following technologies:
+## Tech Stack
 
-- **Java** – core programming language
-- **Spring Boot** – application framework and runtime configuration
-- **Spring Data JPA** – data access and persistence layer
-- **H2 Database** – in-memory database for local development and testing
-- **Thymeleaf** – server-side template engine for rendering web pages
-- **Lombok** – reduces boilerplate code such as constructors and dependency injection setup
-- **AI-assisted development** – used to support database generation, data seeding setup, and UI/template enhancement
+| Technology | Purpose |
+|---|---|
+| **Java 21** | Core programming language |
+| **Spring Boot 4.0.4** | Application framework and auto-configuration |
+| **Spring Data JPA** | Data access / persistence layer |
+| **H2 Database** | In-memory database for development and testing |
+| **Thymeleaf** | Server-side template engine for HTML views |
+| **Jakarta Validation** | Input validation via bean annotations |
+| **Lombok** | Reduces boilerplate (constructors, getters/setters) |
+| **Spring Boot Test** | Testing framework (JUnit 5, Mockito, MockMvc) |
+
+---
 
 ## Features
 
-- Manage sports event data
-- Store and retrieve matches, teams, stages, sport types, and results
-- Render views with Thymeleaf
-- Run with an embedded server using Spring Boot
-- Preload sample data automatically on startup
-- Enhanced Thymeleaf template design for a better user interface and presentation
+- Browse and filter matches by **date** and **sport type**
+- View match scores, winners, stadiums, and tournament stages
+- **Create new events** directly from the web interface
+- RESTful JSON API for all entities
+- Responsive dark-theme UI with mobile card layout
+- Preloaded sample data on startup via `DataInitializer`
+- Global error handling with structured error responses
 
-## Application Port
+---
 
-The application runs on port:
+## Prerequisites
 
-`8082`
+- **Java 21** (JDK)
+- **Maven** (or use the included `mvnw` / `mvnw.cmd` wrapper)
 
-Open it in your browser at:
+## Getting Started
 
-`http://localhost:8082`
+```bash
+# Clone the repository
+git clone https://github.com/HassanOuadghiri/Sports_Event_Calendar.git
+cd Sports_Event_Calendar/events
 
-## Database
+# Run the application (using Maven wrapper)
+./mvnw spring-boot:run        # Linux / macOS
+mvnw.cmd spring-boot:run      # Windows
 
-The project uses an **H2 in-memory database**, which means the data is stored temporarily while the application is running.
+# Or with Maven installed globally
+mvn spring-boot:run
+```
 
-This is useful for:
+Open in your browser: **http://localhost:8082**
 
-- local development
-- testing
-- demo purposes
+### Running Tests
 
-When the application stops, the in-memory data is reset unless additional persistence is configured.
+```bash
+./mvnw test        # Linux / macOS
+mvnw.cmd test      # Windows
+```
 
-### Database Design
+---
 
-The database structure was created with the help of **AI** by providing the system with the **ERD** (Entity Relationship Diagram) of the project.
+## Configuration
 
-You can find the database ERD in:
+The application is configured via `src/main/resources/application.properties`:
 
-`src/main/resources/documentation`
+| Property | Value | Description |
+|---|---|---|
+| `server.port` | `8082` | HTTP port |
+| `spring.datasource.url` | `jdbc:h2:mem:testdb` | H2 in-memory DB URL |
+| `spring.jpa.hibernate.ddl-auto` | `create` | Auto-create schema on startup |
+| `spring.h2.console.enabled` | `true` | Enable H2 web console |
+| `spring.h2.console.path` | `/h2-console` | H2 console URL path |
 
-## Data Initialization
+> **Note:** Data is stored in-memory and resets when the application stops.
 
-The project includes a startup data seeding class:
+---
 
-`com.sports.events.DataInitializer`
+## Database Schema
 
-This class implements `CommandLineRunner`, so it runs automatically when the application starts.
+The database consists of 5 entities with the following relationships:
 
-Its purpose is to insert sample data into the database, including:
+```
+┌──────────┐     ┌───────────┐     ┌──────────┐
+│  Team    │────▶│  Match    │◀────│  Team    │
+│ (home)   │     │           │     │ (away)   │
+└──────────┘     └─────┬─────┘     └──────────┘
+                       │
+              ┌────────┼────────┐
+              ▼        ▼        ▼
+         ┌────────┐ ┌───────┐ ┌──────────┐
+         │ Result │ │ Stage │ │SportType │
+         │  (1:1) │ │ (N:1) │ │  (N:1)   │
+         └────────┘ └───────┘ └──────────┘
+```
 
-- sport types
-- stages
-- teams
-- results
-- matches
+### Table: `matches`
 
-The `DataInitializer` class was also created with the help of **AI** to automate the insertion of sample data whenever the application starts.
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `id` | INTEGER | PK, auto-generated | Match ID |
+| `status` | VARCHAR | NOT NULL | SCHEDULED, FINISHED, CANCELLED |
+| `date_venue` | TIMESTAMP | NOT NULL | Match date and time |
+| `match_group` | VARCHAR | nullable | Tournament group (e.g., "A") |
+| `origin_competition_id` | VARCHAR | nullable | Competition identifier |
+| `origin_competition_name` | VARCHAR | nullable | Competition name |
+| `season` | INTEGER | NOT NULL | Season year |
+| `home_team_id` | INTEGER | FK → team.id, NOT NULL | Home team |
+| `away_team_id` | INTEGER | FK → team.id, NOT NULL | Away team |
+| `result_id` | INTEGER | FK → result.id, UNIQUE | Match result |
+| `stage_id` | VARCHAR | FK → stage.id | Tournament stage |
+| `stadium` | VARCHAR | nullable | Venue name |
+| `sport_type_id` | INTEGER | FK → sportType.id | Sport type |
 
-The initializer adds example data such as:
+### Table: `team`
 
-- **Sport Types**: Football, Basketball
-- **Stages**: Group Stage, Round of 16, Quarter Final
-- **Teams**: Portugal, Spain, France, Germany
-- **Results**: sample home win, draw, and away win outcomes
-- **Matches**: sample finished matches for the **International Cup 2026**
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `id` | INTEGER | PK, auto-generated | Team ID |
+| `name` | VARCHAR | NOT NULL | Display name |
+| `official_name` | VARCHAR | nullable | Full official name |
+| `slug` | VARCHAR | nullable | URL-friendly identifier |
+| `abbreviation` | VARCHAR(5) | nullable | Short code (e.g., "POR") |
+| `team_country_code` | VARCHAR(3) | nullable | ISO country code |
+| `stage_position` | INTEGER | nullable | Position within group |
 
-This makes the application ready to use immediately after startup without requiring manual data entry.
+### Table: `result`
 
-## User Interface
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `id` | INTEGER | PK, auto-generated | Result ID |
+| `home_goals` | INTEGER | NOT NULL, ≥ 0 | Home team goals |
+| `away_goals` | INTEGER | NOT NULL, ≥ 0 | Away team goals |
+| `winner` | VARCHAR | nullable | HOME, AWAY, or DRAW |
+| `message` | VARCHAR | nullable | Match summary text |
+| `goals` | INTEGER | ≥ 0 | Total goals |
+| `yellow_cards` | INTEGER | ≥ 0 | Yellow card count |
+| `second_yellow_cards` | INTEGER | ≥ 0 | Second yellow count |
+| `direct_red_cards` | INTEGER | ≥ 0 | Direct red card count |
 
-The Thymeleaf templates were enhanced and improved for a better visual design and user experience.
+### Table: `stage`
 
-This includes improvements to the overall layout, readability, and presentation of the application pages.
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `id` | VARCHAR | PK (manual) | Stage code (e.g., "GROUP") |
+| `name` | VARCHAR | NOT NULL | Display name |
+| `ordering` | INTEGER | NOT NULL, ≥ 1 | Sort order |
+
+### Table: `sportType`
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `id` | INTEGER | PK, auto-generated | Sport type ID |
+| `name` | VARCHAR | NOT NULL | Sport name |
+
+---
+
+## API Endpoints
+
+### Thymeleaf Views (HTML)
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/` | Landing page |
+| `GET` | `/matches` | Match listing with filters |
+| `GET` | `/matches?date=YYYY-MM-DD` | Filter matches by date |
+| `GET` | `/matches?sportTypeId=N` | Filter matches by sport type |
+| `POST` | `/matches` | Create a new match event (form submission) |
+
+### REST API (JSON)
+
+| Method | Path | Description | Sample Response |
+|---|---|---|---|
+| `GET` | `/api/v1/matches` | All matches | `[{"id":1, "status":"FINISHED", ...}]` |
+| `GET` | `/api/v1/teams` | All teams | `[{"id":1, "name":"Portugal", ...}]` |
+| `GET` | `/api/v1/result` | All results | `[{"id":1, "homeGoals":2, ...}]` |
+| `GET` | `/api/v1/stages` | All stages | `[{"id":"GROUP", "name":"Group Stage", ...}]` |
+| `GET` | `/api/v1/sport-types` | All sport types | `[{"id":1, "name":"Football"}]` |
+
+### H2 Console
+
+Available at `/h2-console` when the application is running. Use:
+- **JDBC URL:** `jdbc:h2:mem:testdb`
+- **Username:** `sa`
+- **Password:** *(empty)*
+
+---
 
 ## Project Structure
 
-A simplified overview of the domain includes:
-
-- `match` – match entity and repository
-- `result` – result entity and repository
-- `sport` – sport type entity and repository
-- `stage` – tournament stage entity and repository
-- `team` – team entity and repository
-- `DataInitializer` – inserts startup data into the database
-- `resources/documentation` – contains the database ERD documentation
-
-## Running the Project
-
-### Prerequisites
-
-Make sure you have installed:
-
-- Java 21
-- Maven or Gradle, depending on your build setup
-
-### Run the application
-
-If you are using Maven:
-
-```bash
-mvn spring-boot:run
 ```
-Then open:
+events/
+├── src/main/java/com/sports/events/
+│   ├── EventsApplication.java          # Spring Boot entry point
+│   ├── DataInitializer.java            # Sample data seeding
+│   ├── exception/
+│   │   ├── GlobalExceptionHandler.java # Centralized error handling
+│   │   └── ErrorResponse.java         # Error response DTO
+│   ├── match/
+│   │   ├── Match.java                 # Entity
+│   │   ├── MatchController.java       # Thymeleaf controller
+│   │   ├── MatchRestController.java   # REST API controller
+│   │   ├── MatchRepository.java       # JPA repository
+│   │   └── MatchService.java         # Business logic
+│   ├── result/
+│   │   ├── Result.java, ResultController.java
+│   │   ├── ResultRepository.java, ResultService.java
+│   ├── sport/
+│   │   ├── SportType.java, SportTypeController.java
+│   │   ├── SportRepository.java, SportService.java
+│   ├── stage/
+│   │   ├── Stage.java, StageController.java
+│   │   ├── StageRepository.java, StageService.java
+│   └── team/
+│       ├── Team.java, TeamController.java
+│       ├── TeamRepository.java, TeamService.java
+├── src/main/resources/
+│   ├── application.properties
+│   ├── templates/
+│   │   ├── index.html                 # Landing page
+│   │   ├── matches.html               # Match listing + create form
+│   │   └── error.html                 # Custom error page
+│   └── Documentation/                 # ERD diagram
+└── src/test/java/com/sports/events/   # Unit & integration tests
+```
 
+---
 
+## Data Seeding
 
-http://localhost:8082
+The `DataInitializer` class implements `CommandLineRunner` and automatically seeds the database on startup with:
+
+- **Sport Types:** Football, Basketball
+- **Stages:** Group Stage, Round of 16, Quarter Final
+- **Teams:** Portugal, Spain, France, Germany
+- **Results:** 3 sample match outcomes
+- **Matches:** 3 sample matches for "International Cup 2026"
+
+---
+
+## AI Disclosure
+
+AI tools were used to assist with:
+- Database schema generation from the ERD
+- `DataInitializer` data seeding setup
+- UI/template enhancement and responsive design
+- Test scaffolding and code quality improvements
+
+See `AI_Reflection.txt` for a detailed reflection on design decisions and challenges.
+
+---
+
+## License
+
+This project is for educational and demonstration purposes.

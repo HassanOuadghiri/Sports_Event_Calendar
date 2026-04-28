@@ -12,8 +12,8 @@ import java.util.List;
 public class StageController {
     private final StageService stageService;
 
-    public StageController(StageService resultService) {
-        this.stageService = resultService;
+    public StageController(StageService stageService) {
+        this.stageService = stageService;
     }
 
     @GetMapping

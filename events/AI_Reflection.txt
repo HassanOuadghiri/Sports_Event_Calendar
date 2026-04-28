@@ -1,2 +1,72 @@
-The database structure was created with the help of **AI** by providing the system with the **ERD** (Entity Relationship Diagram) of the project.
-The `DataInitializer` class was also created with the help of **AI** to automate the insertion of sample data whenever the application starts.
+# AI Reflection — Sports Event Calendar
+
+## Design Decisions
+
+### Architecture: Package-per-Feature
+The project uses a package-per-feature structure (match/, result/, sport/, stage/, team/) rather than a package-per-layer approach (controllers/, services/, repositories/). This decision keeps related classes together and makes the codebase easier to navigate as it grows. Each package is self-contained with its entity, repository, service, and controller.
+
+### H2 In-Memory Database
+An in-memory H2 database was chosen for simplicity during development and testing. It eliminates the need for external database setup, starts fresh on every launch (ensuring reproducible demos), and integrates seamlessly with Spring Boot's auto-configuration. The trade-off is that data is not persisted across restarts, which is acceptable for a demo/educational project.
+
+### Spring Data JPA over Raw JDBC
+Spring Data JPA was chosen because it provides derived query methods (e.g., findByDateVenueBetween) without writing SQL, automatic entity mapping via annotations, and built-in pagination support if needed later. This reduced boilerplate significantly compared to manual JDBC or even JdbcTemplate.
+
+### Thymeleaf for Server-Side Rendering
+Thymeleaf was selected over a SPA framework (React, Angular) to keep the project within a single Spring Boot application. This simplifies deployment, avoids CORS configuration, and makes the application self-contained. The downside is less interactivity — which was partially addressed with JavaScript for the expandable create-event form.
+
+### Mixed Controller Types
+The application uses @Controller for Thymeleaf views (MatchController) and @RestController for JSON APIs (ResultController, StageController, TeamController, MatchRestController, SportTypeController). This dual approach allows the application to serve both browser users and potential API consumers. A MatchRestController was added alongside the Thymeleaf MatchController so that match data is also available as JSON.
+
+### Lombok Usage
+Lombok annotations (@Data, @AllArgsConstructor, @NoArgsConstructor) reduce boilerplate in entity classes. The trade-off is an implicit dependency on annotation processing, and @Data generating equals/hashCode based on all fields (which can cause issues with JPA proxies in larger projects). For this project size, the convenience outweighs the risks.
+
+### No DTO Layer
+Entities are returned directly from controllers without a separate DTO (Data Transfer Object) layer. This was a conscious simplification — in a production application, DTOs would prevent exposing internal entity structure and allow versioned API responses. For this project's scope, the added complexity was not justified.
+
+## Challenges Faced
+
+### Entity Relationship Mapping
+Mapping the ERD to JPA entities required careful handling of:
+- The Stage entity using a String primary key (not auto-generated), which differs from all other entities.
+- The one-to-one relationship between Match and Result, using a unique constraint on the foreign key.
+- Bidirectional lazy loading concerns — kept relationships unidirectional to avoid circular serialization issues with JSON responses.
+
+### Date Filtering Logic
+The MatchService.searchMatches() method handles four filter combinations (no filter, date-only, sport-only, both). Converting a LocalDate to a LocalDateTime range (start of day to start of next day) was necessary because the database stores timestamps, not dates. This is a common pitfall that can cause off-by-one bugs.
+
+### StageRepository Generic Type Bug
+The StageRepository was initially typed as JpaRepository<Stage, Integer>, but Stage uses a String primary key. This was a subtle bug that would only manifest at runtime when calling findById(). Caught and fixed during the code quality review.
+
+### Constructor Parameter Naming
+StageController's constructor named its parameter resultService instead of stageService. While functionally harmless (Lombok's @RequiredArgsConstructor or Spring's injection uses type matching), it was misleading and could confuse future maintainers.
+
+### Create Event Form Complexity
+Building the create-event form required:
+- Adding getById methods to TeamService, StageService, and SportService.
+- Passing dropdown data (teams, stages, sport types) from the controller to the template.
+- Handling the Result entity creation alongside the Match entity in a single form submission.
+- Implementing flash messages for success/error feedback after redirect.
+
+### Responsive Design
+Adapting the matches table for mobile required a dual-layout approach: a table for desktop and card layout for mobile. Using CSS display:none toggling with a @media query kept the HTML semantic while providing appropriate layouts for each viewport.
+
+## What I Would Do Differently
+
+1. **Use a persistent database** (PostgreSQL) for production, keeping H2 only for tests.
+2. **Add a DTO layer** to decouple API responses from entity structure.
+3. **Implement pagination** for the matches endpoint as data grows.
+4. **Add authentication** (Spring Security) to protect the create endpoint.
+5. **Use database migrations** (Flyway or Liquibase) instead of ddl-auto=create.
+6. **Add OpenAPI/Swagger** documentation for the REST API.
+
+## AI Usage Summary
+
+AI was used to assist with the following aspects of this project:
+
+- **Database schema generation**: The entity classes and JPA annotations were created with AI assistance based on the provided ERD diagram.
+- **DataInitializer**: The sample data seeding class was AI-generated to populate the database with realistic test data.
+- **UI/template design**: The Thymeleaf templates were enhanced with AI assistance for responsive layout, dark theme, and accessibility features.
+- **Testing**: Test scaffolding for unit and integration tests was created with AI guidance.
+- **Code quality**: Input validation, error handling, and naming consistency improvements were identified and implemented with AI assistance.
+
+All AI-generated code was reviewed and adapted to fit the project's conventions and requirements.

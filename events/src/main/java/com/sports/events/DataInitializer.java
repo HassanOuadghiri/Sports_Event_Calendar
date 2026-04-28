@@ -24,14 +24,14 @@ public class DataInitializer implements CommandLineRunner {
     private final TeamRepository teamRepository;
     private final ResultRepository resultRepository;
     private final MatchRepository matchRepository;
-    private final SportRepository sportTypeRepository;
+    private final SportRepository sportRepository;
 
     @Override
     public void run(String... args) {
 
         // --- Sport Types ---
-        SportType football = sportTypeRepository.save(new SportType(null, "Football"));
-        SportType basketball = sportTypeRepository.save(new SportType(null, "Basketball"));
+        SportType football = sportRepository.save(new SportType(null, "Football"));
+        SportType basketball = sportRepository.save(new SportType(null, "Basketball"));
 
         // --- Stage ---
         Stage group = stageRepository.save(new Stage("GROUP", "Group Stage", 1));

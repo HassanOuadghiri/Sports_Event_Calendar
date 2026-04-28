@@ -3,252 +3,356 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matches</title>
-
+    <meta name="description" content="Browse and filter sports matches, view scores, and create new events.">
+    <title>Matches — Sports Event Calendar</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f6f8;
-            margin: 20px;
-            color: #333;
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:'Inter','Segoe UI',sans-serif;background:linear-gradient(135deg,#0f0c29,#1a1a3e,#24243e);min-height:100vh;color:#e0e0e0;overflow-x:hidden}
+        .skip-link{position:absolute;top:-100px;left:50%;transform:translateX(-50%);background:#667eea;color:#fff;padding:10px 20px;border-radius:8px;z-index:1000;font-weight:600;text-decoration:none;transition:top .2s}
+        .skip-link:focus{top:10px}
+        nav{display:flex;align-items:center;justify-content:space-between;padding:20px 40px;background:rgba(255,255,255,.04);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.06)}
+        .nav-logo{font-size:1.35rem;font-weight:800;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .nav-logo span{-webkit-text-fill-color:#fff;font-weight:500}
+        .nav-links a{color:rgba(255,255,255,.7);text-decoration:none;font-weight:500;font-size:.95rem;margin-left:28px;transition:color .2s}
+        .nav-links a:hover,.nav-links a:focus-visible{color:#fff}
+        .nav-links a:focus-visible{outline:2px solid #667eea;outline-offset:4px;border-radius:4px}
+        .container{max-width:1100px;margin:0 auto;padding:30px 20px 60px}
+        h1{font-size:1.8rem;font-weight:800;color:#fff;margin-bottom:24px;text-align:center}
+        h1 .gradient{background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+        /* Flash messages */
+        .flash{padding:14px 20px;border-radius:10px;margin-bottom:20px;font-weight:500;font-size:.9rem;animation:fadeIn .4s ease}
+        .flash-success{background:rgba(46,213,115,.12);border:1px solid rgba(46,213,115,.3);color:#2ed573}
+        .flash-error{background:rgba(255,71,87,.12);border:1px solid rgba(255,71,87,.3);color:#ff4757}
+
+        /* Glass card base */
+        .glass{background:rgba(255,255,255,.05);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.08);border-radius:16px}
+
+        /* Filter form */
+        .filter-form{padding:24px 28px;margin-bottom:24px;display:flex;flex-wrap:wrap;gap:16px;align-items:end}
+        .filter-group{display:flex;flex-direction:column;min-width:200px;flex:1}
+        .filter-group label{margin-bottom:6px;font-weight:600;font-size:.85rem;color:rgba(255,255,255,.6)}
+        .filter-group input,.filter-group select{padding:10px 14px;border:1px solid rgba(255,255,255,.12);border-radius:8px;font-size:.9rem;background:rgba(255,255,255,.06);color:#fff;font-family:inherit;transition:border-color .2s}
+        .filter-group input:focus,.filter-group select:focus{outline:none;border-color:#667eea;box-shadow:0 0 0 3px rgba(102,126,234,.2)}
+        .filter-group select option{background:#1a1a3e;color:#fff}
+        .filter-actions{display:flex;gap:10px;align-items:end}
+        .btn{padding:10px 20px;border:none;border-radius:8px;cursor:pointer;font-size:.9rem;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:transform .2s,box-shadow .2s;font-family:inherit}
+        .btn:focus-visible{outline:2px solid #667eea;outline-offset:3px}
+        .btn-search{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}
+        .btn-search:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(102,126,234,.35)}
+        .btn-reset{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.12)}
+        .btn-reset:hover{background:rgba(255,255,255,.14)}
+        .btn-create{background:linear-gradient(135deg,#2ed573,#1abc9c);color:#fff;padding:12px 24px;font-size:.95rem}
+        .btn-create:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(46,213,115,.3)}
+        .btn-cancel{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.12);padding:12px 24px}
+        .btn-submit{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:12px 28px;font-size:.95rem}
+        .btn-submit:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(102,126,234,.35)}
+
+        /* Table */
+        .table-wrapper{overflow-x:auto;margin-bottom:24px}
+        table{width:100%;border-collapse:collapse}
+        th{padding:14px 16px;text-align:left;font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.5);border-bottom:1px solid rgba(255,255,255,.08)}
+        td{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.04);font-size:.9rem}
+        tbody tr{transition:background .2s}
+        tbody tr:hover{background:rgba(102,126,234,.08)}
+        .score{font-weight:700;font-size:1rem;color:#fff}
+        .winner-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:600}
+        .winner-home{background:rgba(46,213,115,.15);color:#2ed573}
+        .winner-away{background:rgba(255,165,2,.15);color:#ffa502}
+        .winner-draw{background:rgba(255,255,255,.08);color:rgba(255,255,255,.5)}
+        .status-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:600;background:rgba(102,126,234,.15);color:#a0b4ff}
+        .empty-message{text-align:center;padding:60px 20px;color:rgba(255,255,255,.4);font-size:1rem}
+
+        /* Create form */
+        .create-section{margin-top:10px;margin-bottom:30px}
+        .toggle-row{display:flex;justify-content:flex-end;margin-bottom:16px}
+        .create-form{padding:28px;display:none}
+        .create-form.open{display:block;animation:fadeIn .3s ease}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        .form-title{font-size:1.15rem;font-weight:700;color:#fff;margin-bottom:20px}
+        .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+        .form-group{display:flex;flex-direction:column}
+        .form-group label{margin-bottom:6px;font-weight:600;font-size:.8rem;color:rgba(255,255,255,.6)}
+        .form-group input,.form-group select{padding:10px 14px;border:1px solid rgba(255,255,255,.12);border-radius:8px;font-size:.9rem;background:rgba(255,255,255,.06);color:#fff;font-family:inherit;transition:border-color .2s}
+        .form-group input:focus,.form-group select:focus{outline:none;border-color:#667eea;box-shadow:0 0 0 3px rgba(102,126,234,.2)}
+        .form-group select option{background:#1a1a3e;color:#fff}
+        .form-divider{grid-column:1/-1;border:0;border-top:1px solid rgba(255,255,255,.06);margin:8px 0}
+        .form-section-label{grid-column:1/-1;font-size:.85rem;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+        .form-actions{grid-column:1/-1;display:flex;gap:12px;justify-content:flex-end;margin-top:10px}
+        .required{color:#ff6b6b}
+
+        /* Mobile cards */
+        .mobile-cards{display:none}
+        .match-card{padding:20px;margin-bottom:16px}
+        .match-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:.8rem}
+        .match-card-teams{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+        .match-card-team{font-weight:600;font-size:1rem;color:#fff}
+        .match-card-score{font-size:1.4rem;font-weight:800;color:#fff;min-width:60px;text-align:center}
+        .match-card-meta{display:flex;flex-wrap:wrap;gap:8px;font-size:.8rem;color:rgba(255,255,255,.4)}
+        .match-card-meta span{background:rgba(255,255,255,.06);padding:3px 10px;border-radius:20px}
+
+        /* Responsive */
+        @media(max-width:768px){
+            nav{padding:16px 20px;flex-direction:column;gap:10px}
+            .nav-links a{margin-left:16px}
+            .container{padding:20px 12px 40px}
+            h1{font-size:1.4rem}
+            .filter-form{flex-direction:column}
+            .filter-group{min-width:100%}
+            .table-wrapper{display:none}
+            .mobile-cards{display:block}
+            .form-grid{grid-template-columns:1fr}
         }
 
-        h2 {
-            text-align: center;
-            margin-bottom: 20px;
-            color: #222;
-        }
-
-        .filter-form {
-            max-width: 1000px;
-            margin: 0 auto 20px auto;
-            background-color: #fff;
-            padding: 16px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            align-items: end;
-        }
-
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            min-width: 220px;
-        }
-
-        .filter-group label {
-            margin-bottom: 6px;
-            font-weight: 600;
-        }
-
-        .filter-group input,
-        .filter-group select {
-            padding: 10px 12px;
-            border: 1px solid #d0d7de;
-            border-radius: 6px;
-            font-size: 14px;
-            background-color: #fff;
-        }
-
-        .filter-actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 10px 16px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .btn-search {
-            background-color: #4a90e2;
-            color: white;
-        }
-
-        .btn-reset {
-            background-color: #6c757d;
-            color: white;
-        }
-
-        .table-wrapper {
-            max-width: 100%;
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background-color: #fff;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-        }
-
-        th {
-            background-color: #4a90e2;
-            color: white;
-            text-align: left;
-            padding: 12px 15px;
-            font-weight: 600;
-        }
-
-        td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        tbody tr:hover {
-            background-color: #f1f8ff;
-            transition: background-color 0.3s;
-        }
-
-        tbody tr:nth-child(even) {
-            background-color: #f9fafb;
-        }
-
-        .empty-message {
-            text-align: center;
-            margin-top: 20px;
-            font-weight: 600;
-            color: #666;
-        }
-
-        @media (max-width: 768px) {
-            .filter-form {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            table,
-            thead,
-            tbody,
-            th,
-            td,
-            tr {
-                display: block;
-            }
-
-            thead {
-                display: none;
-            }
-
-            tr {
-                margin-bottom: 15px;
-                background: white;
-                border-radius: 8px;
-                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-                overflow: hidden;
-            }
-
-            td {
-                text-align: right;
-                padding-left: 50%;
-                position: relative;
-                border-bottom: 1px solid #e0e0e0;
-            }
-
-            td::before {
-                content: attr(data-label);
-                position: absolute;
-                left: 15px;
-                width: 45%;
-                font-weight: 600;
-                text-align: left;
-            }
-        }
+        footer{text-align:center;padding:24px 20px;border-top:1px solid rgba(255,255,255,.06);color:rgba(255,255,255,.3);font-size:.8rem}
     </style>
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
 
-<h2>Matches</h2>
+    <nav role="navigation" aria-label="Main navigation">
+        <div class="nav-logo">SportsCal <span>Events</span></div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/matches" aria-current="page">Matches</a>
+        </div>
+    </nav>
 
-<form th:action="@{/matches}" method="get" class="filter-form">
-    <div class="filter-group">
-        <label for="date">Date</label>
-        <input
-                type="date"
-                id="date"
-                name="date"
-                th:value="${selectedDate != null ? #temporals.format(selectedDate, 'yyyy-MM-dd') : ''}">
-    </div>
+    <main id="main-content" class="container">
+        <h1>🏟️ <span class="gradient">Match</span> Center</h1>
 
-    <div class="filter-group">
-        <label for="sportTypeId">Sport Type</label>
-        <select id="sportTypeId" name="sportTypeId">
-            <option value="">All Sports</option>
-            <option th:each="sportType : ${sportTypes}"
-                    th:value="${sportType.id}"
-                    th:text="${sportType.name}"
-                    th:selected="${selectedSportTypeId != null and sportType.id == selectedSportTypeId}">
-            </option>
-        </select>
-    </div>
+        <!-- Flash messages -->
+        <div th:if="${successMessage}" class="flash flash-success" role="alert" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="flash flash-error" role="alert" th:text="${errorMessage}"></div>
 
-    <div class="filter-actions">
-        <button type="submit" class="btn btn-search">Search</button>
-        <a th:href="@{/matches}" class="btn btn-reset">Reset</a>
-    </div>
-</form>
+        <!-- Filters -->
+        <form th:action="@{/matches}" method="get" class="filter-form glass" role="search" aria-label="Filter matches">
+            <div class="filter-group">
+                <label for="date">Date</label>
+                <input type="date" id="date" name="date"
+                       th:value="${selectedDate != null ? #temporals.format(selectedDate, 'yyyy-MM-dd') : ''}"
+                       aria-label="Filter by date">
+            </div>
+            <div class="filter-group">
+                <label for="sportTypeId">Sport Type</label>
+                <select id="sportTypeId" name="sportTypeId" aria-label="Filter by sport type">
+                    <option value="">All Sports</option>
+                    <option th:each="sportType : ${sportTypes}"
+                            th:value="${sportType.id}"
+                            th:text="${sportType.name}"
+                            th:selected="${selectedSportTypeId != null and sportType.id == selectedSportTypeId}">
+                    </option>
+                </select>
+            </div>
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-search" id="btn-filter-search">🔍 Search</button>
+                <a th:href="@{/matches}" class="btn btn-reset" id="btn-filter-reset">Reset</a>
+            </div>
+        </form>
 
-<div class="table-wrapper" th:if="${matches != null and !#lists.isEmpty(matches)}">
-    <table>
-        <thead>
-        <tr>
-            <th>Date</th>
-            <th>Sport Type</th>
-            <th>Stage</th>
-            <th>Home Team</th>
-            <th>Away Team</th>
-            <th>Score</th>
-            <th>Winner</th>
-            <th>Stadium</th>
-        </tr>
-        </thead>
+        <!-- Desktop Table -->
+        <div class="table-wrapper glass" th:if="${matches != null and !#lists.isEmpty(matches)}">
+            <table aria-label="Matches results table">
+                <thead>
+                <tr>
+                    <th scope="col">Date</th>
+                    <th scope="col">Sport</th>
+                    <th scope="col">Stage</th>
+                    <th scope="col">Home</th>
+                    <th scope="col">Score</th>
+                    <th scope="col">Away</th>
+                    <th scope="col">Result</th>
+                    <th scope="col">Stadium</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="match : ${matches}">
+                    <td th:text="${#temporals.format(match.dateVenue, 'dd MMM yyyy HH:mm')}"></td>
+                    <td><span class="status-badge" th:text="${match.sportType != null ? match.sportType.name : 'N/A'}"></span></td>
+                    <td th:text="${match.stage != null ? match.stage.name : '—'}"></td>
+                    <td style="font-weight:600;color:#fff" th:text="${match.homeTeam != null ? match.homeTeam.name : 'N/A'}"></td>
+                    <td class="score">
+                        <span th:text="${match.result != null ? match.result.homeGoals : '-'}"></span>
+                        :
+                        <span th:text="${match.result != null ? match.result.awayGoals : '-'}"></span>
+                    </td>
+                    <td style="font-weight:600;color:#fff" th:text="${match.awayTeam != null ? match.awayTeam.name : 'N/A'}"></td>
+                    <td>
+                        <span th:if="${match.result != null}"
+                              class="winner-badge"
+                              th:classappend="${match.result.winner == 'HOME' ? 'winner-home' : (match.result.winner == 'AWAY' ? 'winner-away' : 'winner-draw')}"
+                              th:text="${match.result.winner}"></span>
+                        <span th:if="${match.result == null}" class="winner-badge winner-draw">—</span>
+                    </td>
+                    <td th:text="${match.stadium != null ? match.stadium : '—'}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
 
-        <tbody>
-        <tr th:each="match : ${matches}">
-            <td data-label="Date"
-                th:text="${#temporals.format(match.dateVenue, 'dd/MM/yyyy HH:mm')}"></td>
+        <!-- Mobile Cards -->
+        <div class="mobile-cards" th:if="${matches != null and !#lists.isEmpty(matches)}">
+            <div th:each="match : ${matches}" class="match-card glass">
+                <div class="match-card-header">
+                    <span class="status-badge" th:text="${match.sportType != null ? match.sportType.name : 'N/A'}"></span>
+                    <span th:text="${#temporals.format(match.dateVenue, 'dd MMM yyyy HH:mm')}"></span>
+                </div>
+                <div class="match-card-teams">
+                    <span class="match-card-team" th:text="${match.homeTeam != null ? match.homeTeam.name : 'N/A'}"></span>
+                    <span class="match-card-score">
+                        <span th:text="${match.result != null ? match.result.homeGoals : '-'}"></span>
+                        :
+                        <span th:text="${match.result != null ? match.result.awayGoals : '-'}"></span>
+                    </span>
+                    <span class="match-card-team" th:text="${match.awayTeam != null ? match.awayTeam.name : 'N/A'}"></span>
+                </div>
+                <div class="match-card-meta">
+                    <span th:text="${match.stage != null ? match.stage.name : '—'}"></span>
+                    <span th:text="${match.stadium != null ? match.stadium : '—'}"></span>
+                    <span th:if="${match.result != null}"
+                          class="winner-badge"
+                          th:classappend="${match.result.winner == 'HOME' ? 'winner-home' : (match.result.winner == 'AWAY' ? 'winner-away' : 'winner-draw')}"
+                          th:text="${match.result.winner}"></span>
+                </div>
+            </div>
+        </div>
 
-            <td data-label="Sport Type"
-                th:text="${match.sportType != null ? match.sportType.name : 'N/A'}"></td>
+        <div class="empty-message glass" style="border-radius:16px;padding:48px" th:if="${matches == null or #lists.isEmpty(matches)}">
+            <p>😔 No matches found for the selected filters.</p>
+        </div>
 
-            <td data-label="Stage"
-                th:text="${match.stage != null ? match.stage.name : 'N/A'}"></td>
+        <!-- Create Event Section -->
+        <section class="create-section" id="create-event" aria-label="Create a new event">
+            <div class="toggle-row">
+                <button type="button" class="btn btn-create" id="btn-toggle-create" onclick="toggleCreateForm()" aria-expanded="false" aria-controls="create-form">
+                    ➕ Create New Event
+                </button>
+            </div>
 
-            <td data-label="Home Team"
-                th:text="${match.homeTeam != null ? match.homeTeam.name : 'N/A'}"></td>
+            <form th:action="@{/matches}" method="post" class="create-form glass" id="create-form" role="form" aria-label="New event form">
+                <h2 class="form-title">✨ New Match Event</h2>
+                <div class="form-grid">
+                    <!-- Match details -->
+                    <div class="form-section-label">Match Details</div>
 
-            <td data-label="Away Team"
-                th:text="${match.awayTeam != null ? match.awayTeam.name : 'N/A'}"></td>
+                    <div class="form-group">
+                        <label for="originCompetitionName">Competition Name <span class="required">*</span></label>
+                        <input type="text" id="originCompetitionName" name="originCompetitionName" required placeholder="e.g. International Cup">
+                    </div>
+                    <div class="form-group">
+                        <label for="originCompetitionId">Competition ID</label>
+                        <input type="text" id="originCompetitionId" name="originCompetitionId" placeholder="e.g. UCL-001">
+                    </div>
+                    <div class="form-group">
+                        <label for="season">Season <span class="required">*</span></label>
+                        <input type="number" id="season" name="season" required value="2026" min="1900" max="2100">
+                    </div>
+                    <div class="form-group">
+                        <label for="formStatus">Status <span class="required">*</span></label>
+                        <select id="formStatus" name="status" required>
+                            <option value="SCHEDULED">Scheduled</option>
+                            <option value="FINISHED">Finished</option>
+                            <option value="CANCELLED">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="dateVenue">Date &amp; Time <span class="required">*</span></label>
+                        <input type="datetime-local" id="dateVenue" name="dateVenue" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="formStadium">Stadium</label>
+                        <input type="text" id="formStadium" name="stadium" placeholder="e.g. National Stadium">
+                    </div>
+                    <div class="form-group">
+                        <label for="matchGroupField">Group</label>
+                        <input type="text" id="matchGroupField" name="matchGroup" placeholder="e.g. A">
+                    </div>
+                    <div class="form-group">
+                        <label for="formSportType">Sport Type</label>
+                        <select id="formSportType" name="sportTypeId">
+                            <option value="">— Select —</option>
+                            <option th:each="st : ${sportTypes}" th:value="${st.id}" th:text="${st.name}"></option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="formStage">Stage</label>
+                        <select id="formStage" name="stageId">
+                            <option value="">— Select —</option>
+                            <option th:each="s : ${stages}" th:value="${s.id}" th:text="${s.name}"></option>
+                        </select>
+                    </div>
 
-            <td data-label="Score">
-                <span th:text="${match.result != null ? match.result.homeGoals : 0}"></span>
-                -
-                <span th:text="${match.result != null ? match.result.awayGoals : 0}"></span>
-            </td>
+                    <hr class="form-divider">
+                    <div class="form-section-label">Teams</div>
 
-            <td data-label="Winner"
-                th:text="${match.result != null ? match.result.winner : 'N/A'}"></td>
+                    <div class="form-group">
+                        <label for="homeTeamId">Home Team <span class="required">*</span></label>
+                        <select id="homeTeamId" name="homeTeamId" required>
+                            <option value="">— Select —</option>
+                            <option th:each="t : ${teams}" th:value="${t.id}" th:text="${t.name}"></option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="awayTeamId">Away Team <span class="required">*</span></label>
+                        <select id="awayTeamId" name="awayTeamId" required>
+                            <option value="">— Select —</option>
+                            <option th:each="t : ${teams}" th:value="${t.id}" th:text="${t.name}"></option>
+                        </select>
+                    </div>
 
-            <td data-label="Stadium"
-                th:text="${match.stadium}"></td>
-        </tr>
-        </tbody>
-    </table>
-</div>
+                    <hr class="form-divider">
+                    <div class="form-section-label">Result</div>
 
-<div class="empty-message" th:if="${matches == null or #lists.isEmpty(matches)}">
-    No matches found for the selected filters.
-</div>
+                    <div class="form-group">
+                        <label for="homeGoals">Home Goals</label>
+                        <input type="number" id="homeGoals" name="homeGoals" value="0" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="awayGoals">Away Goals</label>
+                        <input type="number" id="awayGoals" name="awayGoals" value="0" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="winner">Winner</label>
+                        <select id="winner" name="winner">
+                            <option value="">— Select —</option>
+                            <option value="HOME">Home</option>
+                            <option value="AWAY">Away</option>
+                            <option value="DRAW">Draw</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1">
+                        <label for="message">Match Summary</label>
+                        <input type="text" id="message" name="message" placeholder="Brief summary of the match">
+                    </div>
 
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-cancel" onclick="toggleCreateForm()">Cancel</button>
+                        <button type="submit" class="btn btn-submit" id="btn-submit-event">🚀 Create Event</button>
+                    </div>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Sports Event Calendar. Built with Spring Boot &amp; Thymeleaf.</p>
+    </footer>
+
+    <script>
+        function toggleCreateForm() {
+            const form = document.getElementById('create-form');
+            const btn = document.getElementById('btn-toggle-create');
+            const isOpen = form.classList.toggle('open');
+            btn.setAttribute('aria-expanded', isOpen);
+            if (isOpen) {
+                form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+        // Auto-open if navigated with #create-event hash
+        if (window.location.hash === '#create-event') {
+            toggleCreateForm();
+        }
+    </script>
 </body>
 </html>
